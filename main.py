@@ -19,12 +19,12 @@ app.add_middleware(
 class ConvertRequest(BaseModel):
     url: str
 
-# Optional root endpoint to test backend
+# Root endpoint to test backend
 @app.get("/")
 async def root():
     return {"message": "Backend is alive"}
 
-# Conversion endpoint (no trimming)
+# Conversion endpoint (no trimming, enhanced error reporting)
 @app.post("/convert")
 async def convert(req: ConvertRequest):
     os.makedirs("temp", exist_ok=True)
@@ -32,15 +32,14 @@ async def convert(req: ConvertRequest):
     temp_path = f"temp/{filename}"
 
     try:
-        # Run yt-dlp via Python module to avoid PATH issues
-        subprocess.run([
-            "python3", "-m", "yt_dlp", "-x", "--audio-format", "mp3", "-o", temp_path, req.url
-        ], check=True)
+        # Run yt-dlp and capture stdout/stderr
+        result = subprocess.run(
+            ["python3", "-m", "yt_dlp", "-x", "--audio-format", "mp3", "-o", temp_path, req.url],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
 
-        return {"filename": filename, "path": f"/{temp_path}"}
-
-    except subprocess.CalledProcessError as e:
-        error_msg = f"yt-dlp failed: {e}"
-        print(error_msg)
-        traceback.print_exc()
-        raise HTTPException(status_code=400, detail=error_msg)
+        # Optional: log stdout/stderr for debugging
+        print("yt-dlp stdout:", result.s
