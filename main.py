@@ -42,4 +42,4 @@ async def convert(req: ConvertRequest):
         )
 
         # Optional: log stdout/stderr for debugging
-        print("yt-dlp stdout:", result.s
+        print("yt-dlp stdout:", result.s)
