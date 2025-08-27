@@ -3,12 +3,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import subprocess, uuid, os
 
-app = FastAPI("FRONTEND_URL", "*") 
+app = FastAPI()  # ← No extra arguments here
+
+# CORS setup
+frontend_url = os.environ.get("FRONTEND_URL", "*")  # Use "*" for testing, or your frontend URL
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url], 
+    allow_origins=[frontend_url],  # List of allowed origins
     allow_methods=["*"],
-    allow_headers=["*"]
+    allow_headers=["*"],
 )
 
 class ConvertRequest(BaseModel):
