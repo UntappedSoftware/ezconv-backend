@@ -42,4 +42,14 @@ async def convert(req: ConvertRequest):
         )
 
         # Optional: log stdout/stderr for debugging
-        print("yt-dlp stdout:", result.s)
+        print("yt-dlp stdout:", result.stdout)
+        print("yt-dlp stderr:", result.stderr)
+
+        return {"filename": filename, "path": f"/{temp_path}"}
+
+    except subprocess.CalledProcessError as e:
+        # Return yt-dlp error output to frontend for debugging
+        error_msg = f"yt-dlp failed with code {e.returncode}.\nStdout:\n{e.stdout}\nStderr:\n{e.stderr}"
+        print(error_msg)
+        traceback.print_exc()
+        raise HTTPException(status_code=400, detail=error_msg)
