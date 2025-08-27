@@ -3,10 +3,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import subprocess, uuid, os
 
-app = FastAPI()
+app = FastAPI("FRONTEND_URL", "*") # Replace * in production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[frontend_url], # Must include your frontend URL
     allow_methods=["*"],
     allow_headers=["*"]
 )
