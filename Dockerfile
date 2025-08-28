@@ -11,7 +11,7 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # Make temp folder for downloads
-RUN mkdir temp
+RUN mkdir -p temp
 
 # Expose port for Cloud Run
 EXPOSE 8080
