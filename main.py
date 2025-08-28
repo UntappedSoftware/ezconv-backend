@@ -65,3 +65,6 @@ async def yt_dlp_version():
         return {"yt-dlp_version": result.stdout.strip()}
     except subprocess.CalledProcessError as e:
         return {"error": e.stderr.strip()}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
