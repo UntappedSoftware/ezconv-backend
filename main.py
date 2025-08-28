@@ -3,10 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import subprocess, uuid, os, traceback
 
+# --- FastAPI app ---
 app = FastAPI()
 
 # CORS setup
-frontend_url = os.environ.get("FRONTEND_URL", "*")  # set this in Render env vars
+frontend_url = os.environ.get("FRONTEND_URL", "*")  # set this in your environment
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[frontend_url],
@@ -15,25 +16,43 @@ app.add_middleware(
     allow_credentials=True
 )
 
-# Request model
+# --- Request model ---
 class ConvertRequest(BaseModel):
     url: str
 
+# --- Root endpoint ---
 @app.get("/")
 async def root():
     return {"message": "Backend is alive"}
 
-# Conversion endpoint
+# --- Conversion endpoint ---
 @app.post("/convert")
 async def convert(req: ConvertRequest):
     os.makedirs("temp", exist_ok=True)
     filename = f"{uuid.uuid4()}.mp3"
     temp_path = f"temp/{filename}"
 
+    cookies_file = "cookies.txt"  # your exported YouTube cookies
+
+    if not os.path.exists(cookies_file):
+        raise HTTPException(status_code=500, detail=f"Cookies file not found at {cookies_file}")
+
     try:
-        # Run yt-dlp and capture output
+        # Run yt-dlp with cookies
         result = subprocess.run(
-            ["python3", "-m", "yt_dlp", "-x", "--audio-format", "mp3", "-o", temp_path, req.url],
+            [
+                "python3",
+                "-m",
+                "yt_dlp",
+                "--cookies",
+                cookies_file,
+                "-x",
+                "--audio-format",
+                "mp3",
+                "-o",
+                temp_path,
+                req.url
+            ],
             check=True,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
@@ -51,7 +70,7 @@ async def convert(req: ConvertRequest):
         traceback.print_exc()
         raise HTTPException(status_code=400, detail=error_msg)
 
-# Temporary endpoint to check yt-dlp installation
+# --- Optional: Check yt-dlp version ---
 @app.get("/yt-dlp-version")
 async def yt_dlp_version():
     try:
@@ -65,6 +84,8 @@ async def yt_dlp_version():
         return {"yt-dlp_version": result.stdout.strip()}
     except subprocess.CalledProcessError as e:
         return {"error": e.stderr.strip()}
+
+# --- Run backend ---
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8080)
